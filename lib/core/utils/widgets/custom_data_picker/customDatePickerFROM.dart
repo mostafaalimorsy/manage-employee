@@ -1,81 +1,204 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:table_calendar/table_calendar.dart';
 
-class CustomDatePickerFrom extends StatelessWidget {
-  final DateTime selectedDate;
+class CalendarDialog extends StatefulWidget {
+  const CalendarDialog({super.key});
 
-  const CustomDatePickerFrom({super.key, required this.selectedDate});
+  @override
+  _CalendarDialogState createState() => _CalendarDialogState();
+}
+
+class _CalendarDialogState extends State<CalendarDialog> {
+  DateTime _selectedDate = DateTime.now();
+  DateTime _currentMonth = DateTime(2022, 9); // September 2022
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Shortcut Buttons
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
+    return Dialog(
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            _DateShortcutButton(label: 'Today', onTap: () {}),
-            _DateShortcutButton(label: 'Next Monday', onTap: () {}),
-            _DateShortcutButton(label: 'Next Tuesday', onTap: () {}),
-            _DateShortcutButton(label: 'After 1 week', onTap: () {}),
+            _buildMonthHeader(),
+            const SizedBox(height: 16),
+            _buildCalendarGrid(),
+            const SizedBox(height: 16),
+            _buildActionButtons(),
           ],
         ),
+      ),
+    );
+  }
 
-        const SizedBox(height: 16),
-
-        // Calendar Widget
-        TableCalendar(
-          firstDay: DateTime.utc(2020),
-          lastDay: DateTime.utc(2030),
-          focusedDay: selectedDate,
-          selectedDayPredicate: (day) => isSameDay(day, selectedDate),
-          onDaySelected: (selectedDay, focusedDay) {
-            // Handle selection
-          },
+  Widget _buildMonthHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          DateFormat('MMMM yyyy').format(_currentMonth),
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-
-        const Divider(),
-
-        // Footer
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              children: [
-                const Icon(Icons.calendar_today, size: 18, color: Colors.blue),
-                const SizedBox(width: 8),
-                Text(DateFormat('d MMM yyyy').format(selectedDate)),
-              ],
+            IconButton(
+              icon: const Icon(Icons.chevron_left),
+              onPressed: () => _changeMonth(-1),
             ),
-            Row(
-              children: [
-                TextButton(onPressed: () {}, child: const Text('Cancel')),
-                ElevatedButton(onPressed: () {}, child: const Text('Save')),
-              ],
+            IconButton(
+              icon: const Icon(Icons.chevron_right),
+              onPressed: () => _changeMonth(1),
             ),
           ],
         ),
       ],
     );
   }
+
+  Widget _buildCalendarGrid() {
+    final firstDay = DateTime(_currentMonth.year, _currentMonth.month, 1);
+    final lastDay = DateTime(_currentMonth.year, _currentMonth.month + 1, 0);
+    final daysInMonth = lastDay.day;
+    final startingWeekday = firstDay.weekday;
+
+    return Table(
+      border: TableBorder.all(color: Colors.grey.shade300),
+      children: [
+        const TableRow(
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: Colors.grey)),
+          ),
+          children: [
+            _CalendarHeader('Sun'),
+            _CalendarHeader('Mon'),
+            _CalendarHeader('Tue'),
+            _CalendarHeader('Wed'),
+            _CalendarHeader('Thu'),
+            _CalendarHeader('Fri'),
+            _CalendarHeader('Sat'),
+          ],
+        ),
+        ..._buildCalendarRows(startingWeekday, daysInMonth),
+      ],
+    );
+  }
+
+  List<TableRow> _buildCalendarRows(int startingWeekday, int daysInMonth) {
+    List<TableRow> rows = [];
+    List<Widget> currentRow = [];
+    int dayCounter = 1;
+    int totalCells = 0;
+    // Add empty cells for days before the 1st of the month
+    for (int i = 1; i < startingWeekday; i++) {
+      currentRow.add(const SizedBox(height: 40));
+      totalCells++;
+    }
+    // Fill remaining cells if needed
+    while (totalCells % 7 != 0) {
+      currentRow.add(const SizedBox(height: 40));
+      totalCells++;
+    }
+    // Add all days of the month
+    while (dayCounter <= daysInMonth) {
+      for (int i = startingWeekday; i <= 7 && dayCounter <= daysInMonth; i++) {
+        final day = dayCounter;
+        final date = DateTime(_currentMonth.year, _currentMonth.month, day);
+        final isToday = _isSameDate(date, DateTime.now());
+        final isSelected = _isSameDate(date, _selectedDate);
+
+        currentRow.add(
+          GestureDetector(
+            onTap: () => setState(() => _selectedDate = date),
+            child: Container(
+              height: 40,
+              decoration: BoxDecoration(
+                color: isSelected ? Colors.blue : null,
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                day.toString(),
+                style: TextStyle(
+                  color: isSelected
+                      ? Colors.white
+                      : isToday
+                          ? Colors.blue
+                          : Colors.black,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+            ),
+          ),
+        );
+        dayCounter++;
+      }
+      rows.add(TableRow(children: [...currentRow]));
+      currentRow = [];
+      startingWeekday = 1; // Reset to Sunday for subsequent weeks
+    }
+
+    return rows;
+  }
+
+  Widget _buildActionButtons() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        TextButton(
+          onPressed: () => setState(() => _selectedDate = DateTime.now()),
+          child: const Text('Today'),
+        ),
+        Row(
+          children: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            const SizedBox(width: 8),
+            TextButton(
+              onPressed: () => Navigator.pop(context, _selectedDate),
+              child: const Text(
+                'Save',
+                style: TextStyle(color: Colors.blue),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  void _changeMonth(int delta) {
+    setState(() {
+      _currentMonth = DateTime(_currentMonth.year, _currentMonth.month + delta);
+    });
+  }
+
+  bool _isSameDate(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
 }
 
-class _DateShortcutButton extends StatelessWidget {
-  final String label;
-  final VoidCallback onTap;
+class _CalendarHeader extends StatelessWidget {
+  final String text;
 
-  const _DateShortcutButton({required this.label, required this.onTap});
+  const _CalendarHeader(this.text);
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton(
-      onPressed: onTap,
-      style: OutlinedButton.styleFrom(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          color: Colors.grey,
+        ),
       ),
-      child: Text(label),
     );
   }
 }

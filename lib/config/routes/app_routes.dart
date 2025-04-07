@@ -4,20 +4,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mostafamorsy/core/app_exports/app_export.dart';
 import 'package:mostafamorsy/core/app_exports/screens_exports.dart';
-
-
+import 'package:mostafamorsy/feature/add_employee/presentation/ui/screen/add_employee.dart';
 
 enum PageRouteAnimation { Fade, Scale, Rotate, Slide, SlideBottomTop }
 
 class Routes {
   Routes._internal();
 
-
   static const String homeRoute = "/home ";
+  static const String addEmployeeRoute = "/addEmployeeRoute ";
 }
 
 class RouteGenerator {
   RouteGenerator._internal();
+
   PageRouteAnimation? pageRouteAnimationGlobal;
   static Duration pageRouteTransitionDurationGlobal = 400.milliseconds;
 
@@ -25,7 +25,11 @@ class RouteGenerator {
     log("route us: ${routeSettings.name!}");
     switch (routeSettings.name) {
       case Routes.homeRoute:
-        return pageFadeTransition(widget: const HomeScreen(), routeSettings: routeSettings);
+        return pageFadeTransition(
+            widget: const HomeScreen(), routeSettings: routeSettings);
+      case Routes.addEmployeeRoute:
+        return pageFadeTransition(
+            widget: AddEmployeeDetailsScreen(), routeSettings: routeSettings);
     }
     return null;
   }
@@ -43,9 +47,8 @@ class RouteGenerator {
           settings: routeSettings,
           transitionDuration: duration ?? pageRouteTransitionDurationGlobal,
           reverseTransitionDuration: const Duration(milliseconds: 50),
-          pageBuilder: (context, a1, a2) => Directionality(
-              textDirection: TextDirection.ltr ,
-              child: widget),
+          pageBuilder: (context, a1, a2) =>
+              Directionality(textDirection: TextDirection.ltr, child: widget),
           transitionsBuilder: (c, anim, a2, child) {
             return FadeTransition(opacity: anim, child: child);
           },
@@ -53,18 +56,19 @@ class RouteGenerator {
       } else if (pageRouteAnimation == PageRouteAnimation.Rotate) {
         return PageRouteBuilder(
           settings: routeSettings,
-          pageBuilder: (context, a1, a2) => Directionality(
-              textDirection:  TextDirection.ltr , child: widget),
+          pageBuilder: (context, a1, a2) =>
+              Directionality(textDirection: TextDirection.ltr, child: widget),
           transitionsBuilder: (c, anim, a2, child) {
-            return RotationTransition(child: child, turns: ReverseAnimation(anim));
+            return RotationTransition(
+                child: child, turns: ReverseAnimation(anim));
           },
           transitionDuration: duration ?? pageRouteTransitionDurationGlobal,
         );
       } else if (pageRouteAnimation == PageRouteAnimation.Scale) {
         return PageRouteBuilder(
           settings: routeSettings,
-          pageBuilder: (context, a1, a2) => Directionality(
-              textDirection:  TextDirection.ltr, child: widget),
+          pageBuilder: (context, a1, a2) =>
+              Directionality(textDirection: TextDirection.ltr, child: widget),
           transitionsBuilder: (c, anim, a2, child) {
             return ScaleTransition(child: child, scale: anim);
           },
@@ -73,8 +77,8 @@ class RouteGenerator {
       } else if (pageRouteAnimation == PageRouteAnimation.Slide) {
         return PageRouteBuilder(
           settings: routeSettings,
-          pageBuilder: (context, a1, a2) => Directionality(
-              textDirection:  TextDirection.ltr , child: widget),
+          pageBuilder: (context, a1, a2) =>
+              Directionality(textDirection: TextDirection.ltr, child: widget),
           transitionsBuilder: (c, anim, a2, child) {
             return SlideTransition(
               child: child,
@@ -89,8 +93,8 @@ class RouteGenerator {
       } else if (pageRouteAnimation == PageRouteAnimation.SlideBottomTop) {
         return PageRouteBuilder(
           settings: routeSettings,
-          pageBuilder: (context, a1, a2) => Directionality(
-              textDirection:  TextDirection.ltr , child: widget),
+          pageBuilder: (context, a1, a2) =>
+              Directionality(textDirection: TextDirection.ltr, child: widget),
           transitionsBuilder: (c, anim, a2, child) {
             return SlideTransition(
               child: child,
@@ -111,8 +115,8 @@ class RouteGenerator {
             statusBarIconBrightness: Brightness.dark,
             statusBarBrightness: Brightness.dark,
           ),
-          child: Directionality(
-              textDirection:  TextDirection.ltr , child: widget)),
+          child:
+              Directionality(textDirection: TextDirection.ltr, child: widget)),
       settings: routeSettings,
     );
   }

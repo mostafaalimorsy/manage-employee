@@ -8,5 +8,6 @@ class AppAssets {
   static const String emptyIcon = 'assets/images/svgs/empty-state.svg';
   static const String nameIcon = 'assets/images/svgs/name-icon.svg';
   static const String roleIcon = 'assets/images/svgs/role-icon.svg';
+  static const String arrowIcon = 'assets/images/svgs/arrowIcon.svg';
 
 }
